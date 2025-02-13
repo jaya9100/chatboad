@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Chat Application</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+        }
+        .chat {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+        }
+        .chat-header {
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+        .chat-header img {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 40px;
+            width: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .chat-body {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+        }
+        .chat-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            width: fit-content;
+            max-width: 80%;
+        }
+        .chat-message.user {
+            background-color: #00f5ff;
+            color: #000;
+            align-self: flex-end;
+        }
+        .chat-message.bot {
+            background-color: #e9ecef;
+            color: #000;
+            align-self: flex-start;
+        }
+        .chat-footer {
+            padding: 15px;
+            background-color: #f8fafa;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #dee2e6;
+        }
+        .chat-footer input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        #open-chat-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="open-chat-btn">
+        <button class="btn btn-primary btn-lg" onclick="openChat()">Open Chat</button>
+    </div>
+    <div class="chat" id="chat-container">
+        <div class="chat-header">
+            <img src="c:\Users\jayar\OneDrive\Desktop\jay36\IMG_5121.JPG" alt="user image">
+            JAYARAJ KUMAR
+        </div>
+        <div class="chat-body" id="chat-body"></div>
+        <div class="chat-footer">
+            <input type="text" id="message-input" placeholder="Your message here..." class="form-control">
+            <button class="btn btn-primary" id="send-button">Send</button>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function openChat() {
+            document.getElementById('open-chat-btn').style.display = 'none';
+            document.getElementById('chat-container').style.display = 'flex';
+        }
+
+        $(document).ready(function () {
+            $('#send-button').click(function () {
+                sendMessage();
+            });
+
+            $('#message-input').keypress(function (e) {
+                if (e.which === 13) {
+                    sendMessage();
+                }
+            });
+
+            function sendMessage() {
+                var userMessage = $('#message-input').val().trim();
+
+                if (userMessage) {
+                    $('#chat-body').append('<div class="chat-message user">' + userMessage + '</div>');
+                    $('#message-input').val("");
+                    $('#chat-body').scrollTop($('#chat-body')[0].scrollHeight);
+
+                    // Check if user message is "Hello" and respond directly
+                    if (userMessage.toLowerCase() === "hello") {
+                        $('#chat-body').append('<div class="chat-message bot">Hello</div>');
+                        $('#chat-body').scrollTop($('#chat-body')[0].scrollHeight);
+                        return;
+                    }
+
+                    // Sending the message to the Flask backend
+                    $.ajax({
+                        url: 'http://127.0.0.1:5000/chat',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ message: userMessage }),
+                        success: function(response) {
+                            $('#chat-body').append('<div class="chat-message bot">' + response.response.replace(/\n/g, '<br>').replace(/```/g, '') + '</div>');
+                            $('#chat-body').scrollTop($('#chat-body')[0].scrollHeight);
+                        },
+                        error: function() {
+                            $('#chat-body').append('<div class="chat-message bot">Sorry, something went wrong.</div>');
+                            $('#chat-body').scrollTop($('#chat-body')[0].scrollHeight);
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
